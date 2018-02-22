@@ -1,0 +1,42 @@
+{
+    "name": "hnhdigital-os/laravel-model-schema-money",
+    "description": "Calculate tax.",
+    "keywords": ["laravel","schema","cast","money"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rocco Howard",
+            "email": "rocco@hnh.digital"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0",
+        "hnhdigital-os/laravel-model-schema": "~1.0",
+        "moneyphp/money": "^3.1"
+    },
+    "require-dev": {
+        "illuminate/database": "4.*|5.*",
+        "phpunit/phpunit": "^7.0",
+        "symfony/thanks" : "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "HnhDigital\\ModelSchemaMoney\\": "src/",
+            "HnhDigital\\ModelSchemaMoney\\Tests\\": "src/tests/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "composer phpunit && composer phpcs && composer phpmd"
+        ],
+        "phpunit": [
+            "phpunit"
+        ],
+        "phpcs": [
+            "phpcs -p -s --standard=PSR2 ./src ./tests"
+        ],
+        "phpmd": [
+            "phpmd ./src phpmd.xml"
+        ]
+    }
+}
