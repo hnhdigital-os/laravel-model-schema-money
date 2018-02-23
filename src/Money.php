@@ -19,6 +19,7 @@ use Money\Formatter\DecimalMoneyFormatter;
 use Money\Formatter\IntlMoneyFormatter;
 use Money\Money as MoneyPhp;
 use NumberFormatter;
+use Symfony\Component\Intl\Intl;
 
 /**
  * This is the Money class.
@@ -40,27 +41,90 @@ class Money
     /**
      * @var string
      */
-    private $language;
+    private $locale;
 
     /**
      * Constructor.
      * 
      * @param float  $amount
      * @param string $currency
-     * @param string $language
+     * @param string $locale
      *
      * @return void
      */
-    public function __construct($amount, string $currency = 'USD', string $language = 'en_US')
+    public function __construct($amount, string $currency = 'USD', string $locale = 'en_US')
     {
+        $currency = $currency ?: 'USD';
+        $locale = $locale ?: 'en_US';
+
         $this->money = new MoneyPhp($amount, new Currency($currency));
+        $this->localize($currency, $locale);
+    }
+
+    /**
+     * Get the currency.
+     * 
+     * @return $this
+     */
+    public function localize($currency = 'USD', string $locale = 'en_US'): self
+    {
+        $currency = $currency ?: 'USD';
+        $locale = $locale ?: 'en_US';
+
+        $this->money = new MoneyPhp($this->money->getAmount(), new Currency($currency));
         $this->currency = $currency;
-        $this->language = $language;
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    /**
+     * Get the currency.
+     *
+     * @return string
+     */
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    /**
+     * Set the currency.
+     *
+     * @return $this
+     */
+    public function setCurrency($currency): self
+    {
+        $this->currency = $currency;
+
+        return $this;
+    }
+
+    /**
+     * Get the locale.
+     *
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->locale;
+    }
+
+    /**
+     * Set the locale.
+     *
+     * @return $this
+     */
+    public function setLocale($locale): self
+    {
+        $this->locale = $locale;
+
+        return $this;
     }
 
     /**
      * Returns the value as a decimal value.
-     * 
+     *
      * @return float
      */
     public function decimal(): float
@@ -70,16 +134,16 @@ class Money
 
     /**
      * Returns thie value as a string.
-     * 
+     *
      * @return string
      */
     public function format(): string
     {
-        if (empty($this->language)) {
+        if (empty($this->locale)) {
             return number_format($this->money);
         }
 
-        $number_formatter = new NumberFormatter($this->language, NumberFormatter::CURRENCY);
+        $number_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
         $money_formatter = new IntlMoneyFormatter($number_formatter, new ISOCurrencies());
 
         return $money_formatter->format($this->money);
@@ -96,6 +160,16 @@ class Money
     }
 
     /**
+     * Return the symbol value.
+     *
+     * @return string
+     */
+    public function symbol()
+    {
+        return Intl::getCurrencyBundle()->getCurrencySymbol($this->currency);
+    }
+
+    /**
      * @param string $method
      * @param array  $arguments
      *
@@ -103,7 +177,14 @@ class Money
      */
     public function __call(string $method, array $arguments)
     {
-        return call_user_func_array([$this->money, $method], $arguments);
+        $result = call_user_func_array([$this->money, $method], $arguments);
+
+        // Return new self, not instance of MoneyPhp.
+        if ($result instanceof MoneyPhp) {
+            return new self($result->getAmount(), $this->currency, $this->locale);
+        }
+
+        return $result;
     }
 
     /**
