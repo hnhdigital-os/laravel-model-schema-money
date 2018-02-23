@@ -27,9 +27,9 @@ trait ModelCastAsMoneyTrait
      *
      * @return Money
      */
-    protected function asMoney($value): Money
+    protected function asMoney($value, $currency = 'USD'): Money
     {
-        return new Money($value);
+        return new Money($value, $currency);
     }
 
     /**
@@ -45,8 +45,9 @@ trait ModelCastAsMoneyTrait
     /**
      * Register the casting definitions.
      */
-    public static bootModelCastAsMoneyTrait()
+    public static function bootModelCastAsMoneyTrait()
     {
-
+        static::registerCastAs('money', 'asMoney');
+        static::registerCastTo('money', 'castMoneyAttributeAsInt');
     }
 }
