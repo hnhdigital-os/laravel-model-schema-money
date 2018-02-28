@@ -52,12 +52,20 @@ class Money
      *
      * @return void
      */
-    public function __construct($amount, string $currency = 'USD', string $locale = 'en_US')
+    public function __construct($amount, $currency = 'USD', string $locale = 'en_US')
     {
-        $currency = $currency ?: 'USD';
+        if (is_string($currency)) {
+            $currency = $currency ?: 'USD';
+            $currency = new Currency($currency);
+        }
+
+        if ($amount instanceof self) {
+            $amount = $amount->getAmount();
+        }
+
         $locale = $locale ?: 'en_US';
 
-        $this->money = new MoneyPhp($amount, new Currency($currency));
+        $this->money = new MoneyPhp($amount, $currency);
         $this->localize($currency, $locale);
     }
 
@@ -68,10 +76,14 @@ class Money
      */
     public function localize($currency = 'USD', string $locale = 'en_US'): self
     {
-        $currency = $currency ?: 'USD';
+        if (is_string($currency)) {
+            $currency = $currency ?: 'USD';
+            $currency = new Currency($currency);
+        }
+
         $locale = $locale ?: 'en_US';
 
-        $this->money = new MoneyPhp($this->money->getAmount(), new Currency($currency));
+        $this->money = new MoneyPhp($this->money->getAmount(), $currency);
         $this->currency = $currency;
         $this->locale = $locale;
 
@@ -160,6 +172,16 @@ class Money
     }
 
     /**
+     * Return the Money item.
+     *
+     * @return MoneyPhp
+     */
+    public function money(): MoneyPhp
+    {
+        return $this->money;
+    }
+
+    /**
      * Return the symbol value.
      *
      * @return string
@@ -177,11 +199,18 @@ class Money
      */
     public function __call(string $method, array $arguments)
     {
+        // Always use the MoneyPhp object.
+        foreach ($arguments as &$value) {
+            if ($value instanceof self) {
+                $value = $value->money();
+            }
+        }
+
         $result = call_user_func_array([$this->money, $method], $arguments);
 
         // Return new self, not instance of MoneyPhp.
         if ($result instanceof MoneyPhp) {
-            return new self($result->getAmount(), $this->currency, $this->locale);
+            $this->money = $result;
         }
 
         return $result;

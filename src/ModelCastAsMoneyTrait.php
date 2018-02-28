@@ -39,7 +39,11 @@ trait ModelCastAsMoneyTrait
      */
     protected function castMoneyToInt($key, $value): int
     {
-        return (int) $value->amount();
+        if (is_object($value)) {
+            return (int) $value->amount();
+        }
+
+        return (int) $value;
     }
 
     /**
@@ -49,5 +53,6 @@ trait ModelCastAsMoneyTrait
     {
         static::registerCastFromDatabase('money', 'castAsMoney');
         static::registerCastToDatabase('money', 'castMoneyToInt');
+        static::registerCastValidator('money', 'int');
     }
 }
