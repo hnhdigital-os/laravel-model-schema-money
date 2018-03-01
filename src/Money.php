@@ -213,7 +213,7 @@ class Money
             $this->money = $result;
         }
 
-        return $result;
+        return $this;
     }
 
     /**
