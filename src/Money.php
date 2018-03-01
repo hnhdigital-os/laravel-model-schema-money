@@ -211,9 +211,11 @@ class Money
         // Return new self, not instance of MoneyPhp.
         if ($result instanceof MoneyPhp) {
             $this->money = $result;
+
+            return $this;
         }
 
-        return $this;
+        return $result;
     }
 
     /**
